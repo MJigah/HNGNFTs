@@ -11,7 +11,7 @@ NOTE: The only npm  package used in the script is crypto to create the hashes
 <!-- Make Adjustements -->
 Once npm package is installed, check the CSV file to see if rows are adequately separated by comma, and adjust if necessary
 A comma should be added after HASH in the first line of the csv
-rows must not contain ', ""
+
 
 <!-- RUN THE SCRPT -->
 run node app.js to run the script

@@ -43,12 +43,20 @@ fs.writeFileSync("filename.output.csv", csvArray.join(""));
 //Creating sha 0007 json format from CSV file
 for (var i = 1; i < arr.length; i++) {
   var data = arr[i].split(",");
+  //Handling commas in between apostrophes
+  var it = arr[i].match(/([^\"\',]*((\'[^\']*\')*||(\"[^\"]*\")*))+/gm);
+  let strArray = [];
+  for (var x=0;x<it.length;x++) {
+  var txt=it[x].trim(it[x]);
+  if(txt.length)
+  strArray.push(txt)
+  }
   var object = {};
-  for (var j = 0; j < data.length; j++) {
+  for (var j = 0; j < strArray.length; j++) {
     if (newHeaders[j].startsWith("HASH")) {
       object[newHeaders[j].trim()] = "hash(arr[i])";
     }
-    object[newHeaders[j].trim()] = data[j].trim();
+    object[newHeaders[j].trim()] = strArray[j].trim();
   }
   var shaObj = {
     format: "CHIP-0007",
