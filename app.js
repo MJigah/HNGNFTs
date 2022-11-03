@@ -73,10 +73,12 @@ for (var i = 1; i < arr.length; i++) {
     data: {
       example_data: "",
     },
+    hash: hash(arr[i]),
   };
+  var newFilename = object.Filename.replace(/-/g, ' ');
   jsonObject.push(shaObj);
   let json = JSON.stringify(shaObj);
-  fs.writeFileSync(`${object.Filename}.json`, json);
+  fs.writeFileSync(`${newFilename}.json`, json);
 }
 
 
