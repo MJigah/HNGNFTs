@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "crypto": "^1.0.1",
+    "csv": "^6.2.1",
+    "csvtojson": "^2.0.10"
+  }
+}
