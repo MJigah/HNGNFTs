@@ -3,8 +3,12 @@ const fs = require("fs");
 const { createHash } = require("crypto");
 
 //Reading CSV File
-const csvFileLink = "./CSV_file.csv"
+const csvFileLink = "NFT Naming csv - Team Clutch.csv"
 csvfile = fs.readFileSync(csvFileLink);
+
+//Get the Team name
+var teamName = csvFileLink.substr(17, csvFileLink.indexOf('.csv'));
+var remName = teamName.replace('.csv', '')
 
 //Creating hahing function
 const hash = (string) => {
@@ -50,7 +54,7 @@ for (var i = 1; i < arr.length; i++) {
     format: "CHIP-0007",
     name: object.Filename,
     description: object.description,
-    minting_tool: "Team X",
+    minting_tool: remName,
     sensitive_content: false,
     series_number: object.SerialNumber,
     series_total: arr.length,
