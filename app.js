@@ -3,12 +3,8 @@ const fs = require("fs");
 const { createHash } = require("crypto");
 
 //Reading CSV File
-const csvFileLink = "NFT Naming csv - Team Clutch.csv"
+const csvFileLink = "HNGi9 CSV FILE - Sheet1.csv";
 csvfile = fs.readFileSync(csvFileLink);
-
-//Get the Team name
-var teamName = csvFileLink.substr(17, csvFileLink.indexOf('.csv'));
-var remName = teamName.replace('.csv', '')
 
 //Creating hahing function
 const hash = (string) => {
@@ -16,62 +12,61 @@ const hash = (string) => {
 };
 
 //Differentiating header and rows from csv File
-const arr = csvfile.toString().split("\n");
+var arr = csvfile.toString().split("\n");
 var jsonObject = [];
 var headers = arr[0].split(",");
 var newHeaders = headers.map((heading) => {
-  if (heading === "Serial Number") {
+  if (heading === "Series Number") {
     return "SerialNumber";
+  } else if (heading === "TEAM NAMES") {
+    return "TeamNames";
   } else {
     return heading;
   }
 });
 
-//Appending hash to csv row
-var csvArray = []
-for(var i =1; i<arr.length; i++){
-  var data = arr[i].split(",");
-  var hashed = `${hash(arr[i])}\n`;
-  var newData = data + hashed;
-  csvArray.push(newData);
-}
+//initializiing hash Array
+var allJsonHash = [];
+var temp;
 
-//Creating output CSV file
-csvArray.unshift(arr[0])
-fs.writeFileSync("filename.output.csv", csvArray.join(""));
-
-//Creating sha 0007 json format from CSV file
+// //Creating sha 0007 json format from CSV file
 for (var i = 1; i < arr.length; i++) {
   var data = arr[i].split(",");
-  //Handling commas in between apostrophes
-  var it = arr[i].match(/([^\"\',]*((\'[^\']*\')*||(\"[^\"]*\")*))+/gm);
-  let strArray = [];
-  for (var x=0;x<it.length;x++) {
-  var txt=it[x].trim(it[x]);
-  if(txt.length)
-  strArray.push(txt)
-  }
   var object = {};
-  for (var j = 0; j < strArray.length; j++) {
-    if (newHeaders[j].startsWith("HASH")) {
-      object[newHeaders[j].trim()] = "hash(arr[i])";
+  for (var j = 0; j < newHeaders.length; j++) {
+    if (newHeaders[j].startsWith("TeamNames")) {
+      if (data[j] === "") {
+        data[j] = temp;
+        object[newHeaders[j]] = data[j];
+      } else {
+        object[newHeaders[j]] = data[j];
+        temp = data[j];
+      }
+    } else {
+      object[newHeaders[j]] = data[j];
     }
-    object[newHeaders[j].trim()] = strArray[j].trim();
   }
+  var attArray = [];
+  var attObj = {};
+  var attArr = object.Attributes.split(";");
+  var shaAttr = attArr.map((row) => {
+    return row.split(":");
+  });
+  var subAttr = shaAttr.map((row) => {
+    return {
+      trait_type: row[0],
+      value: row[1],
+    };
+  });
   var shaObj = {
     format: "CHIP-0007",
-    name: object.Filename,
+    name: object.Name,
     description: object.description,
-    minting_tool: remName,
+    minting_tool: object.TeamNames,
     sensitive_content: false,
     series_number: object.SerialNumber,
-    series_total: arr.length,
-    attributes: [
-      {
-        trait_type: "gender",
-        value: object.Gender,
-      }
-    ],
+    series_total: 420,
+    attributes: subAttr,
     collection: {
       name: "Zuri NFT tickets for free lunch",
       id: "b774f676-c1d5-422e-beed-00ef5510c64d",
@@ -79,21 +74,53 @@ for (var i = 1; i < arr.length; i++) {
         {
           type: "description",
           value: "Rewards for accomplishments during HNGi9.",
-        }
+        },
       ],
     },
     data: {
       example_data: "",
     },
-    hash: hash(arr[i]),
   };
-  var newFilename = object.Filename.replace(/-/g, ' ');
-  jsonObject.push(shaObj);
   let json = JSON.stringify(shaObj);
-  fs.writeFileSync(`${newFilename}.json`, json);
+  var jsonHash = hash(json);
+  //   var newFilename = object.Filename.replace(/-/g, ' ');
+  var objJson = JSON.stringify({ ...shaObj, hash: jsonHash });
+  allJsonHash.push(jsonHash);
+  if(fs.existsSync("./json_files")){
+    fs.writeFile(`./json_files/${object.Filename}.json`, objJson, (err) => {
+      if (err) throw err;
+    });
+  } else {
+    fs.mkdirSync(`./json_files`)
+  }
 }
 
+var updatedAllJsonHash = allJsonHash.map((row) => {
+  return row + "/n";
+});
 
-//Creating General Json Format
-let json = JSON.stringify(jsonObject);
-fs.writeFileSync("output.json", json);
+//Appending hash to csv row
+var csvArray = [];
+for (var i = 1; i < arr.length; i++) {
+  var data = arr[i].split(",");
+  data.push(updatedAllJsonHash[i - 1]);
+  csvArray.push(data);
+}
+
+// Appending Hash header to header
+headers.push("HASH\n");
+var csvHeader = headers.map((row) => {
+  return row.trim();
+});
+csvHeader.join(",");
+var newCsvHeader = csvHeader.map((row) => {
+  if (row === "HASH") {
+    return "Hash\n";
+  } else {
+    return row;
+  }
+});
+
+//Creating output CSV file
+csvArray.unshift(newCsvHeader.join(","));
+fs.writeFileSync("filename.output.csv", csvArray.join(""));
